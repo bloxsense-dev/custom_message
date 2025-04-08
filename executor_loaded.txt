@@ -24,7 +24,7 @@ local colors = {
 
 -- Создаем основной GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "SeleneGUI"
+screenGui.Name = "BloxsenseGUI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player:WaitForChild("PlayerGui")
@@ -199,7 +199,7 @@ frame.InputBegan:Connect(function(input)
 end)
 
 -- Первоначальное сообщение
-local initialText = createTextElement("Selene Rewrite has loaded. Wait while...", colors.textPrimary, 14, true)
+local initialText = createTextElement("bcnAPI has succesfully loaded. Wait while...", colors.textPrimary, 14, true)
 initialText.Parent = innerFrame
 
 -- Запускаем анимацию появления
@@ -215,7 +215,7 @@ local function updateToStatusText()
 
     -- Создаем элементы с минимальными отступами
     local elements = {
-        createTextElement("Selene Rewrite", colors.primary, 14, true),
+        createTextElement("bcnAPI Loaded.", colors.primary, 14, true),
         createDivider(),
         createTextElement("FPS: 0", colors.textSecondary, 12),
         createTextElement("PING: 0", colors.textSecondary, 12),
