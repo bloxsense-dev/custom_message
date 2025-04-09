@@ -1,0 +1,279 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local ping = 0
+local fps = 0
+
+-- Цвета
+local colors = {
+    bg = Color3.fromHex("#121212"),
+    surface = Color3.fromHex("#1e1e1e"),
+    primary = Color3.fromHex("#bb86fc"),
+    secondary = Color3.fromHex("#03dac6"),
+    error = Color3.fromHex("#cf6679"),
+    textPrimary = Color3.fromHex("#e1e1e1"),
+    textSecondary = Color3.fromHex("#a0a0a0"),
+    divider = Color3.fromHex("#333"),
+    success = Color3.fromHex("#4caf50"),
+    warning = Color3.fromHex("#ff9800"),
+    info = Color3.fromHex("#2196f3")
+}
+
+-- Создаем основной GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BloxsenseGUI"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Основной контейнер
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.AnchorPoint = Vector2.new(0, 1)
+frame.Position = UDim2.new(0, 20, 1, -20)
+frame.Size = UDim2.new(0, 0, 0, 27) -- Автоматическая ширина
+frame.AutomaticSize = Enum.AutomaticSize.X -- Автоматическая ширина по содержимому
+frame.BackgroundColor3 = colors.surface
+frame.BackgroundTransparency = 1
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Скругление углов
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0.2, 0)
+corner.Parent = frame
+
+-- Тень
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.Size = UDim2.new(1, 10, 1, 10)
+shadow.Position = UDim2.new(0, -5, 0, -5)
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 1
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.BackgroundTransparency = 1
+shadow.ZIndex = -1
+shadow.Parent = frame
+
+-- Эффект свечения
+local glow = Instance.new("ImageLabel")
+glow.Name = "Glow"
+glow.Size = UDim2.new(1, 20, 1, 20)
+glow.Position = UDim2.new(0, -10, 0, -10)
+glow.Image = "rbxassetid://1316045217"
+glow.ImageColor3 = colors.primary
+glow.ImageTransparency = 1
+glow.ScaleType = Enum.ScaleType.Slice
+glow.SliceCenter = Rect.new(10, 10, 118, 118)
+glow.BackgroundTransparency = 1
+glow.ZIndex = -2
+glow.Parent = frame
+
+-- Внутренний контейнер с горизонтальным расположением
+local innerFrame = Instance.new("Frame")
+innerFrame.Name = "InnerFrame"
+innerFrame.Size = UDim2.new(1, -20, 1, -10)
+innerFrame.Position = UDim2.new(0, 10, 0, 5)
+innerFrame.BackgroundTransparency = 1
+innerFrame.Parent = frame
+
+-- Горизонтальный layout с минимальным отступом
+local uiListLayout = Instance.new("UIListLayout")
+uiListLayout.FillDirection = Enum.FillDirection.Horizontal
+uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+uiListLayout.Padding = UDim.new(0, 4) -- Уменьшенный отступ между элементами
+uiListLayout.Parent = innerFrame
+
+-- Функция для создания текстового элемента
+local function createTextElement(text, color, size, isBold)
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Text = text
+    textLabel.Size = UDim2.new(0, 0, 0, 0)
+    textLabel.AutomaticSize = Enum.AutomaticSize.XY
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.Gotham
+    textLabel.TextColor3 = color or colors.textPrimary
+    textLabel.TextSize = size or 14
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center
+    textLabel.RichText = true
+    textLabel.TextTransparency = 1
+    
+    if isBold then
+        textLabel.Font = Enum.Font.GothamSemibold
+    end
+    
+    return textLabel
+end
+
+-- Функция для создания разделителя
+local function createDivider()
+    local divider = Instance.new("TextLabel")
+    divider.Text = "|"
+    divider.Size = UDim2.new(0, 8, 0, 11)
+    divider.BackgroundTransparency = 1
+    divider.Font = Enum.Font.SourceSans
+    divider.TextColor3 = colors.divider
+    divider.TextSize = 12
+    divider.TextTransparency = 1
+    divider.TextYAlignment = Enum.TextYAlignment.Center
+    return divider
+end
+
+-- Анимация появления
+local function fadeIn()
+    TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.1}):Play()
+    TweenService:Create(shadow, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {ImageTransparency = 0.8}):Play()
+end
+
+-- Анимация исчезновения
+local function fadeOut()
+    if frame.MouseEnter then pcall(function() frame.MouseEnter:Disconnect() end) end
+    if frame.MouseLeave then pcall(function() frame.MouseLeave:Disconnect() end) end
+    if frame.InputBegan then pcall(function() frame.InputBegan:Disconnect() end) end
+
+    TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(shadow, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {ImageTransparency = 1}):Play()
+    TweenService:Create(glow, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {ImageTransparency = 1}):Play()
+    
+    for _, child in ipairs(innerFrame:GetChildren()) do
+        if child:IsA("TextLabel") then
+            TweenService:Create(child, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
+        end
+    end
+    
+    delay(0.3, function()
+        if screenGui and screenGui.Parent then
+            screenGui:Destroy()
+        end
+    end)
+end
+
+-- Функция для принудительного закрытия
+local function forceClose()
+    if not screenGui or not screenGui.Parent then return end
+    
+    if closeTimer then
+        pcall(function() 
+            if type(closeTimer) == "table" and closeTimer.Disconnect then
+                closeTimer:Disconnect()
+            elseif type(closeTimer) == "function" then
+                closeTimer()
+            end
+        end)
+    end
+    
+    if performanceConnection then
+        pcall(function() performanceConnection:Disconnect() end)
+    end
+    
+    fadeOut()
+end
+
+-- Обработчик наведения
+local function onHover(hovering)
+    if not frame or not frame.Parent then return end
+    
+    if hovering then
+        TweenService:Create(glow, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {ImageTransparency = 0.7}):Play()
+    else
+        TweenService:Create(glow, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {ImageTransparency = 1}):Play()
+    end
+end
+
+-- Подключаем обработчики наведения
+frame.MouseEnter:Connect(function() onHover(true) end)
+frame.MouseLeave:Connect(function() onHover(false) end)
+
+-- Подключаем обработчик клика для закрытия
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        forceClose()
+    end
+end)
+
+-- Первоначальное сообщение
+local initialText = createTextElement("bcxAPI has succesfully loaded. Wait while...", colors.textPrimary, 14, true)
+initialText.Parent = innerFrame
+
+-- Запускаем анимацию появления
+fadeIn()
+TweenService:Create(initialText, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+
+-- Функция для обновления текста с анимацией
+local function updateToStatusText()
+    local fadeOut = TweenService:Create(initialText, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {TextTransparency = 1})
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
+    initialText:Destroy()
+
+    -- Создаем элементы с минимальными отступами
+    local elements = {
+        createTextElement("bcxAPI Loaded.", colors.primary, 14, true),
+        createDivider(),
+        createTextElement("FPS: 0", colors.textSecondary, 12),
+        createTextElement("PING: 0", colors.textSecondary, 12),
+        createDivider(),
+        createTextElement("Injection successful", colors.success, 12, true)
+    }
+    
+    -- Добавляем все элементы в GUI
+    for _, element in ipairs(elements) do
+        element.Parent = innerFrame
+        
+        -- Анимация появления
+        TweenService:Create(element, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
+    end
+    
+    return {
+        pingElement = elements[4],
+        fpsElement = elements[3],
+        statusElement = elements[6]
+    }
+end
+
+-- Функция для обновления PING и FPS
+local function updatePerformance(statusElements)
+    local success, result = pcall(function()
+        return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+    end)
+    
+    ping = success and math.floor(result) or 0
+    
+    local deltaTime = RunService.RenderStepped:Wait()
+    fps = math.floor(1/deltaTime)
+    
+    if statusElements then
+        statusElements.pingElement.Text = "PING: " .. ping
+        statusElements.fpsElement.Text = "FPS: " .. fps
+    end
+end
+
+-- Задержка перед сменой текста
+wait(2)
+
+-- Анимация перехода к новому тексту
+local statusElements = updateToStatusText()
+
+-- Запускаем обновление PING и FPS
+performanceConnection = RunService.Heartbeat:Connect(function()
+    updatePerformance(statusElements)
+end)
+
+-- Через 10 секунд запускаем анимацию исчезновения
+closeTimer = delay(10, function()
+    fadeOut()
+end)
+
+-- Обработчик для принудительного закрытия
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Escape and not gameProcessed then
+        forceClose()
+    end
+end)
